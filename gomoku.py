@@ -22,7 +22,6 @@ def on_draw():
 # Handle mouse events for button interaction
 @window.event
 def on_mouse_press(x, y, button_pressed, modifiers):
-	print(f"Screen was clicked at {x, y}!")
 	for row in board.buttons:
 		for button in row:
 			button.on_mouse_press(x, y, button_pressed, modifiers)
