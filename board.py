@@ -4,6 +4,7 @@ from button import CustomButton
 
 class Board():
 	def __init__(self):
+		self.turn = BLACK
 		self.batch = pyglet.graphics.Batch()
 
 		self.board_lines = [] # This is needed to keep every line in memory
@@ -20,4 +21,11 @@ class Board():
 			for col in range(BOARD_SIZE):
 				x = BOARD_PADDING - (LINE_SPACING / 2) + (col * LINE_SPACING)
 				y = BOARD_PADDING - (LINE_SPACING / 2) + (row * LINE_SPACING)
-				self.buttons[row][col] = CustomButton(x, y, self.batch)
+				self.buttons[row][col] = CustomButton(x, y, self.batch, self)
+	
+	def change_turn(self):
+		self.turn = WHITE if (self.turn == BLACK) else BLACK # Alternate between black and white turns
+		
+		for row in self.buttons:
+			for button in row:
+				button.change_turn_img()

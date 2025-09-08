@@ -9,19 +9,45 @@ def resize_image(img, size):
 	new_img.height = size
 	return new_img
 
+def get_button_size_img(img_path):
+	img = pyglet.image.load(img_path)
+	return resize_image(img, int(LINE_SPACING))
+
 # Load images from files
-black_white_img = pyglet.image.load("img/black_white_stone.png")
-black_white_img = resize_image(black_white_img, int(LINE_SPACING))
-black_img = pyglet.image.load("img/black_stone.png")
-black_img = resize_image(black_img, int(LINE_SPACING))
-white_img = pyglet.image.load("img/white_stone.png")
-white_img = resize_image(white_img, int(LINE_SPACING))
+empty_img = get_button_size_img("img/empty.png")
+black_img = get_button_size_img("img/black_stone.png")
+white_img = get_button_size_img("img/white_stone.png")
 
 class CustomButton(PushButton):
-	def __init__(self, x, y, batch):
-		super().__init__(x, y, pressed=black_img, unpressed=white_img, hover=black_white_img, batch=batch)
+	def __init__(self, x, y, batch, board):
+		super().__init__(x, y, pressed=black_img, unpressed=empty_img, hover=black_img, batch=batch)
+		self.state = NOT_SELECTED
+		self.board = board
+	
 	def on_press(self, button):
 		super().on_press(self)
-		print("Button was clicked!")
-		self._unpressed_img = black_img
-		self._hover_img = black_img
+		if self.state != NOT_SELECTED:
+			return
+		
+		if self.board.turn == BLACK:
+			self._unpressed_img = black_img
+			self._pressed_img = black_img
+			self._hover_img = black_img
+		else:
+			self._unpressed_img = white_img
+			self._pressed_img = white_img
+			self._hover_img = white_img
+		
+		self.state = self.board.turn
+		self.board.change_turn()
+	
+	def change_turn_img(self):
+		if self.state != NOT_SELECTED:
+			return
+
+		if self.board.turn == BLACK:
+			self._hover_img = black_img
+			self._pressed_img = black_img
+		else:
+			self._hover_img = white_img
+			self._pressed_img = white_img
