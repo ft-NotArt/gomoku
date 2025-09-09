@@ -26,9 +26,15 @@ class CustomButton(PushButton):
 		self.state = NOT_SELECTED
 		self.board = board
 	
-	def on_press(self, button):
-		super().on_press(self)
+	def on_press(self, widget):
+		super().on_press(widget)
 		if self.state != NOT_SELECTED:
+			return
+		
+		self.state = self.board.turn # Need to change the button to clicked before checking for double-three
+		if self.board.is_double_three_move(self.grid_x, self.grid_y):
+			self.state = NOT_SELECTED
+			print("Invalid move: double-three")
 			return
 		
 		if self.board.turn == BLACK:
@@ -40,7 +46,6 @@ class CustomButton(PushButton):
 			self._unpressed_img = white_img
 			self._hover_img = white_img
 		
-		self.state = self.board.turn
 		self.board.capture(self.grid_x, self.grid_y)
 		self.board.change_turn()
 	

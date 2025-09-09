@@ -133,3 +133,52 @@ class Board():
 						self.black_pairs_captured += 1
 					else:
 						self.white_pairs_captured += 1
+
+
+	def is_free_three(self, x, y, dx, dy):
+		player = self.turn
+		for free_three in FREE_THREES:
+			if not check_bounds(x, y, dx, dy, len(free_three)):
+				continue
+			match = True
+			for i in range(len(free_three)):
+				expected_state = player if free_three[i] != 0 else NOT_SELECTED
+				if self.buttons[y + (dy * i)][x + (dx * i)].state != expected_state:
+					match = False
+					break
+			if match :
+				return True
+		return False
+	
+	def is_double_three_move(self, x, y):
+		free_three_count = 0
+		
+		for col in range(x - 5, x + 1):
+			if col < 0 :
+				continue
+			if self.is_free_three(col, y, 1, 0):
+				free_three_count += 1
+				break
+
+		for row in range(y - 5, y + 1):
+			if row < 0 :
+				continue
+			if self.is_free_three(x, row, 0, 1):
+				free_three_count += 1
+				break
+		
+		for col, row in zip(range(x - 5, x + 1), range(y - 5, y + 1)):
+			if col < 0 or row < 0 :
+				continue
+			if self.is_free_three(col, row, 1, 1):
+				free_three_count += 1
+				break
+		
+		for col, row in zip(range(x - 5, x + 1), range(y + 5, y - 1, -1)):
+			if col < 0 or row < 0 or row >= BOARD_SIZE :
+				continue
+			if self.is_free_three(col, row, 1, -1):
+				free_three_count += 1
+				break
+		
+		return True if free_three_count > 1 else False

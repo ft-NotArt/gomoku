@@ -13,6 +13,13 @@ DIRECTIONS = [
 	(1, -1),	# Anti-diagonal
 ]
 
+FREE_THREES = [
+	[0, 0, 1, 1, 1, 0],
+	[0, 1, 1, 1, 0, 0],
+	[0, 1, 0, 1, 1, 0],
+	[0, 1, 1, 0, 1, 0],
+]
+
 
 # Window display
 BOARD_WIDTH = BOARD_SIZE * 40  # Total board width/height
