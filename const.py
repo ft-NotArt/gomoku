@@ -1,12 +1,21 @@
-# Go board configuration
+# Game
 BOARD_SIZE = 19  # Traditional Go board is 19x19
-BOARD_WIDTH = BOARD_SIZE * 40  # Total board width/height
-BOARD_PADDING = 30
-LINE_SPACING = BOARD_WIDTH / (BOARD_SIZE - 1)
-
-
-WINDOW_SIZE = BOARD_WIDTH + BOARD_PADDING * 2
+WIN_LINE = 5
 
 NOT_SELECTED = 0
 BLACK = 1
 WHITE = 2
+
+DIRECTIONS = [
+	(1, 0),		# Horizontal	#|/
+	(0, 1),		# Vertical		#*-
+	(1, 1),		# Diagonal		##\
+	(1, -1),	# Anti-diagonal
+]
+
+
+# Window display
+BOARD_WIDTH = BOARD_SIZE * 40  # Total board width/height
+BOARD_PADDING = 30
+LINE_SPACING = BOARD_WIDTH / (BOARD_SIZE - 1)
+WINDOW_SIZE = BOARD_WIDTH + BOARD_PADDING * 2

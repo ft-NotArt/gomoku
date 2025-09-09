@@ -21,12 +21,17 @@ class Board():
 			for col in range(BOARD_SIZE):
 				x = BOARD_PADDING - (LINE_SPACING / 2) + (col * LINE_SPACING)
 				y = BOARD_PADDING - (LINE_SPACING / 2) + (row * LINE_SPACING)
-				self.buttons[row][col] = CustomButton(x, y, self.batch, self)
+				self.buttons[row][col] = CustomButton(x, y, col, row, self.batch, self)
 
 
 	def change_turn(self):
-		if self.check_victory():
-			print(f'{"White" if (self.turn == WHITE) else "Black"} player wins !')
+		# if (self.check_horizontal_possible_capture(0, 0, self.turn)):
+		# 	print("ouioui")
+		
+		# Checks for victory before changing turn (player)
+		winner = self.check_victory()
+		if winner is not False:
+			print(f'{"White" if (winner == WHITE) else "Black"} player wins !')
 			pyglet.app.exit()
 			return
 		
@@ -35,50 +40,88 @@ class Board():
 		for row in self.buttons:
 			for button in row:
 				button.change_turn_img()
-
-	def check_victory(self):
+		
 		for x in range(BOARD_SIZE):
 			for y in range(BOARD_SIZE):
-				if (self.buttons[x][y].state == self.turn):
-					if (self.check_horizontal_line(x, y)
-					or	self.check_vertical_line(x, y)
-					or	self.check_diagonal_line1(x, y)
-					or	self.check_diagonal_line2(x, y)):
+				if self.is_capturable(x, y):
+					print(f'{x, y} is capturable !')
+
+	def check_victory(self):
+		prev_color = WHITE if (self.turn == BLACK) else BLACK # This is needed to keep win order, in case both players make a line of five
+		for player in [prev_color, self.turn]:
+			for x in range(BOARD_SIZE):
+				for y in range(BOARD_SIZE):
+					for dx, dy in DIRECTIONS:
+						if self.check_line(x, y, dx, dy, player):
+							if player != self.turn: # As the winning player is about to play, there's no way for him to lose his five in a row.
+								return player # The winning player
+
+							# Check if the winning line can be broken by a capture
+							for i in range(WIN_LINE):
+								if (self.is_capturable(x + (dx * i), y + (dy * i))):
+									self.buttons[y + (dy * i)][x + (dx * i)].state = NOT_SELECTED
+									ineluctable_win = self.check_victory()
+									self.buttons[y + (dy * i)][x + (dx * i)].state = player
+									if (not ineluctable_win):
+										return False
+
+							return player # The winning player
+		return False
+	
+	def check_bounds(self, x, y, dx, dy, length):
+		return (x + dx * (length - 1) < BOARD_SIZE
+			and y + dy * (length - 1) < BOARD_SIZE
+			and x + dx * (length - 1) >= 0
+			and y + dy * (length - 1) >= 0)
+
+	def check_line(self, x, y, dx, dy, player):
+		if not self.check_bounds(x, y, dx, dy, WIN_LINE):
+			return False
+
+		for i in range(WIN_LINE):
+			if self.buttons[y + i * dy][x + i * dx].state != player:
+				return False
+		return True
+
+	def is_capturable(self, x, y):
+		color = self.buttons[y][x].state
+		opp_color = WHITE if (color == BLACK) else BLACK
+		if color == NOT_SELECTED:
+			return False
+		
+		for dx, dy in DIRECTIONS:
+			for dir in [1, -1]: # Double the directions, to have every possible one
+				if (not self.check_bounds(x, y, (dx * dir), (dy * dir), 3) or not self.check_bounds(x, y, (dx * -dir), (dy * -dir), 2)):
+					continue
+
+				if (self.buttons[y + (dy * dir)][x + (dx * dir)].state == color):
+					color_behind = self.buttons[y + (dy * -dir)][x + (dx * -dir)].state
+					color_ahead = self.buttons[y + (dy * dir * 2)][x + (dx * dir * 2)].state
+
+					if ((color_behind == opp_color and color_ahead == NOT_SELECTED)
+					or	(color_behind == NOT_SELECTED and color_ahead == opp_color)): # Could've went for a full one line if but chose clarity
 						return True
 		return False
-
-	def check_horizontal_line(self, x, y):
-		if (BOARD_SIZE - x < 5):
-			return False
 	
-		for i in range(5):
-			if (self.buttons[x + i][y].state != self.turn):
-				return False
-		return True
-
-	def check_vertical_line(self, x, y):
-		if (BOARD_SIZE - y < 5):
+	def is_capture_move(self, x, y, dx, dy):
+		color = self.buttons[y][x].state
+		opp_color = WHITE if (color == BLACK) else BLACK
+		if color == NOT_SELECTED:
 			return False
-	
-		for i in range(5):
-			if (self.buttons[x][y + i].state != self.turn):
-				return False
-		return True
-
-	def check_diagonal_line1(self, x, y):
-		if (BOARD_SIZE - x < 5 or BOARD_SIZE - y < 5):
+		
+		if not self.check_bounds(x, y, dx, dy, 4):
 			return False
+		
+		if (self.buttons[y + dy * 1][x + dx * 1].state == opp_color
+		and self.buttons[y + dy * 2][x + dx * 2].state == opp_color
+		and self.buttons[y + dy * 3][x + dx * 3].state == color):
+			return True
+		
+		return False
 	
-		for i in range(5):
-			if (self.buttons[x + i][y + i].state != self.turn):
-				return False
-		return True
-
-	def check_diagonal_line2(self, x, y):
-		if (BOARD_SIZE - x < 5 or BOARD_SIZE + y < 5):
-			return False
-	
-		for i in range(5):
-			if (self.buttons[x + i][y - i].state != self.turn):
-				return False
-		return True
+	def capture(self, x, y):
+		for dx, dy in DIRECTIONS:
+			for dir in [1, -1]: # Double the directions, to have every possible one
+				if self.is_capture_move(x, y, (dx * dir), (dy * dir)):
+					self.buttons[y + (dy * dir * 1)][x + (dx * dir * 1)].reset()
+					self.buttons[y + (dy * dir * 2)][x + (dx * dir * 2)].reset()
