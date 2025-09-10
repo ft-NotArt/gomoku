@@ -46,6 +46,9 @@ class CustomButton(PushButton):
 			self._unpressed_img = white_img
 			self._hover_img = white_img
 		
+		# Force la mise à jour visuelle
+		self._sprite.image = self._unpressed_img
+		
 		self.board.capture(self.grid_x, self.grid_y)
 		self.board.change_turn()
 	

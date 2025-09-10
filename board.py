@@ -1,6 +1,7 @@
 import pyglet
 from const import *
 from button import CustomButton
+from algo.minimax_ai import MinimaxAI
 
 def check_bounds(x, y, dx, dy, length):
 	return (x + dx * (length - 1) < BOARD_SIZE
@@ -13,6 +14,11 @@ class Board():
 		self.turn = BLACK
 		self.black_pairs_captured = 0
 		self.white_pairs_captured = 0
+		self.ai_enabled = False
+		self.ai_player = WHITE  # L'IA joue les blancs par défaut
+		self.ai_vs_ai = False  # Mode IA vs IA
+		self.ai_black = None   # IA pour les noirs
+		self.ai_white = None   # IA pour les blancs
 
 		self.batch = pyglet.graphics.Batch()
 
@@ -46,6 +52,12 @@ class Board():
 		for row in self.buttons:
 			for button in row:
 				button.change_turn_img()
+		
+		# Gestion des modes IA avec délai pour voir les coups
+		if self.ai_vs_ai:
+			pyglet.clock.schedule_once(lambda _: self.play_ai_vs_ai_move(), 0.5)
+		elif self.ai_enabled and self.turn == self.ai_player:
+			pyglet.clock.schedule_once(lambda _: self.play_ai_move(), 0.5)
 
 
 	def check_victory(self):
@@ -182,3 +194,66 @@ class Board():
 				break
 		
 		return True if free_three_count > 1 else False
+	
+	def enable_ai(self, ai_player=WHITE):
+		"""Active l'IA pour le joueur spécifié"""
+		self.ai_enabled = True
+		self.ai_player = ai_player
+		try:
+			self.ai = MinimaxAI(max_depth=4, time_limit=3.0)
+			print(f"IA activée pour les {'blancs' if ai_player == WHITE else 'noirs'}")
+		except ImportError:
+			print("Erreur: minimax_ai.py non trouvé")
+			self.ai_enabled = False
+	
+	def disable_ai(self):
+		"""Désactive l'IA"""
+		self.ai_enabled = False
+		print("IA désactivée")
+	
+	def play_ai_move(self):
+		"""Fait jouer l'IA"""
+		if not hasattr(self, 'ai'):
+			return
+		try:
+			x, y = self.ai.get_best_move(self)
+			print(f"IA joue en ({x}, {y})")
+			# Simule le clic du bouton
+			button = self.buttons[y][x]
+			if button.state == NOT_SELECTED:
+				button.on_press(button)
+		except Exception as e:
+			print(f"Erreur IA: {e}")
+			return
+			# En cas d'erreur, joue un coup aléatoire valide
+			
+	
+	def enable_ai_vs_ai(self, black_depth=4, white_depth=4):
+		"""Active le mode IA vs IA avec différents niveaux"""
+		try:
+			self.ai_black = MinimaxAI(max_depth=black_depth, time_limit=2.0)
+			self.ai_white = MinimaxAI(max_depth=white_depth, time_limit=2.0)
+			self.ai_vs_ai = True
+			self.ai_enabled = False  # Désactive le mode IA simple
+			print(f"Mode IA vs IA activé (Noir: prof.{black_depth}, Blanc: prof.{white_depth})")
+		except ImportError:
+			print("Erreur: minimax_ai.py non trouvé")
+	
+	def play_ai_vs_ai_move(self):
+		"""Fait jouer l'IA appropriée selon le tour"""
+		current_ai = self.ai_black if self.turn == BLACK else self.ai_white
+		
+		if current_ai is None:
+			return
+		
+		try:
+			x, y = current_ai.get_best_move(self)
+			player_name = "Noir" if self.turn == BLACK else "Blanc"
+			print(f"IA {player_name} joue en ({x}, {y})")
+			
+			button = self.buttons[y][x]
+			if button.state == NOT_SELECTED:
+				button.on_press(button)
+		except Exception as e:
+			print(f"Erreur IA {self.turn}: {e}")
+			return
