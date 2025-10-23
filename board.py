@@ -1,6 +1,7 @@
 import pyglet
 from const import *
-from button import CustomButton
+from button import GomokuPieceButton, StartGameButton, SetOpponentButton
+from fake_AI import ai_move
 
 def check_bounds(x, y, dx, dy, length):
 	return (x + dx * (length - 1) < BOARD_SIZE
@@ -11,6 +12,7 @@ def check_bounds(x, y, dx, dy, length):
 class Board():
 	def __init__(self):
 		self.turn = BLACK
+		self.ai_turn = NOT_SELECTED
 		self.black_pairs_captured = 0
 		self.white_pairs_captured = 0
 
@@ -25,12 +27,18 @@ class Board():
 			self.board_lines.append(line)
 
 		# Buttons need to be added to the batch after the lines so that they're on top of them
-		self.buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)] # This is also needed to keep every button in memory
+		self.buttons = [[SetOpponentButton(True, 250, 250, self.batch, self), SetOpponentButton(False, 500, 250, self.batch, self)],
+						[StartGameButton(50, 50, self.batch, self)]]
+
+
+	def start_game(self):
+		self.buttons.clear()
+		self.buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
 		for row in range(BOARD_SIZE):
 			for col in range(BOARD_SIZE):
 				x = BOARD_PADDING - (LINE_SPACING / 2) + (col * LINE_SPACING)
 				y = BOARD_PADDING - (LINE_SPACING / 2) + (row * LINE_SPACING)
-				self.buttons[row][col] = CustomButton(x, y, col, row, self.batch, self)
+				self.buttons[row][col] = GomokuPieceButton(x, y, col, row, self.batch, self)
 
 
 	def change_turn(self):
@@ -46,6 +54,10 @@ class Board():
 		for row in self.buttons:
 			for button in row:
 				button.change_turn_img()
+		
+		if self.turn == self.ai_turn:
+			posX, posY = ai_move(self)
+			self.buttons[posY][posX].on_press(None)
 
 
 	def check_victory(self):
