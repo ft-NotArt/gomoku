@@ -64,20 +64,25 @@ class GameEvaluator:
         """Évaluation rapide optimisée avec NumPy"""
         game_state = FastGameState(board)
         player = board.turn
-        
-        # Simule le coup
-        old_state = game_state.make_move(x, y, player)
-        
+
+        # Simule le coup avec captures
+        move_data = game_state.make_move(x, y, player)
+
         # Évalue seulement autour de la position jouée (optimisation)
         score = 0
         directions = np.array(DIRECTIONS)
-        
+
         for dx, dy in directions:
             score += game_state.evaluate_direction_fast(x, y, dx, dy, player)
-        
+
+        # Bonus pour les captures
+        _, captured = move_data
+        if len(captured) > 0:
+            score += len(captured) * 400  # Bonus important pour les captures
+
         # Restaure l'état
-        game_state.undo_move(x, y, old_state)
-        
+        game_state.undo_move(x, y, move_data)
+
         return score
     
     def _detect_critical_threats(self, game_state: FastGameState, player: int) -> int:

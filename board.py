@@ -200,7 +200,7 @@ class Board():
 		self.ai_enabled = True
 		self.ai_player = ai_player
 		try:
-			self.ai = MinimaxAI(max_depth=4, time_limit=3.0)
+			self.ai = MinimaxAI(max_depth=15, time_limit=0.5)
 			print(f"IA activée pour les {'blancs' if ai_player == WHITE else 'noirs'}")
 		except ImportError:
 			print("Erreur: minimax_ai.py non trouvé")
@@ -228,14 +228,14 @@ class Board():
 			# En cas d'erreur, joue un coup aléatoire valide
 			
 	
-	def enable_ai_vs_ai(self, black_depth=4, white_depth=4):
+	def enable_ai_vs_ai(self, black_depth=15, white_depth=15):
 		"""Active le mode IA vs IA avec différents niveaux"""
 		try:
-			self.ai_black = MinimaxAI(max_depth=black_depth, time_limit=2.0)
-			self.ai_white = MinimaxAI(max_depth=white_depth, time_limit=2.0)
+			self.ai_black = MinimaxAI(max_depth=black_depth, time_limit=0.5)
+			self.ai_white = MinimaxAI(max_depth=white_depth, time_limit=0.5)
 			self.ai_vs_ai = True
 			self.ai_enabled = False  # Désactive le mode IA simple
-			print(f"Mode IA vs IA activé (Noir: prof.{black_depth}, Blanc: prof.{white_depth})")
+			print(f"Mode IA vs IA activé (Noir: max_depth={black_depth}, Blanc: max_depth={white_depth})")
 		except ImportError:
 			print("Erreur: minimax_ai.py non trouvé")
 	

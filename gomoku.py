@@ -13,9 +13,9 @@ board = Board()
 
 # Modes de jeu (décommente ce que tu veux) :
 # board.enable_ai(WHITE)          # Humain vs IA (IA = blancs)
-# board.enable_ai(BLACK)          # IA vs Humain (IA = noirs)  
+board.enable_ai(BLACK)          # IA vs Humain (IA = noirs)
 # board.enable_ai_vs_ai(4, 4)     # IA vs IA équilibrée
-board.enable_ai_vs_ai(8, 8)     # IA vs IA déséquilibrée
+# board.enable_ai_vs_ai(8, 8)     # IA vs IA déséquilibrée
 
 
 
