@@ -27,6 +27,8 @@ def on_draw():
 # Handle mouse events for button interaction
 @window.event
 def on_mouse_press(x, y, button_pressed, modifiers):
+	if board.turn == board.ai_turn: # prevent the player from playing during AI reflexion time
+		return
 	for row in board.buttons:
 		for button in row:
 			button.on_mouse_press(x, y, button_pressed, modifiers)
@@ -41,7 +43,7 @@ def on_mouse_release(x, y, button_pressed, modifiers):
 def on_mouse_motion(x, y, dx, dy):
 	for row in board.buttons:
 		for button in row:
-			button.on_mouse_motion(x, y, dx, dy)
+				button.on_mouse_motion(x, y, dx, dy)
 
 @window.event
 def on_key_press(symbol, modifiers):
